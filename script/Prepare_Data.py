@@ -15,7 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn import metrics
 from sklearn.model_selection import ShuffleSplit
-from Split_Inductions import *
+from Preprocess import *
 
 titles = ["Variaciones durante la induccion", "Variaciones antes y durante la induccion",
           "Variaciones durante y despues de la induccion",
@@ -37,12 +37,18 @@ def substraction(data1, data2, delete1=False, delete2=False):
     if delete2:
         data2 = np.delete(data2, [14, 76], 0)
     return np.absolute(np.subtract(data1, data2))
+
+
         
-def get_data_models(clases1=None, clases2=None):
+def get_data_models(metadata=None, dataset=None, clases1=None, clases2=None):
     conj_datos = []
-    vars1, vars2, vars3 = get_split_np_data()
+    if metadata is None:
+        metadata = load_metadata()
+    if dataset is None:
+        dataset = load_dataset()
+    vars1, vars2, vars3 = get_split_np_data(dataset, metadata)
     if clases1 is None or clases2 is None:
-        clases1, clases2 = get_class_lists()
+        clases1, clases2 = get_class(metadata)
     
     # Guardamos el conjunto de datos de prueba las varianzas de antes de la induccion
     # conj_datos.append({"X": vars1, "y": clases1}) 
@@ -77,12 +83,7 @@ def validations(conj_datos=None):
     scores = []
     if conj_datos is None:
         conj_datos = get_data_models()
-    clfs = []
-    clfs.append(svm.SVC(kernel='linear', C=1, random_state=0))
-    clfs.append(LogisticRegression(random_state=0, max_iter=1000))
-    clfs.append(MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=0))
-    # clfs.append(RandomForestClassifier(max_depth=2, random_state=0))
-    clfs_name = ["SVM", "Logistic Regresion", "Neuronal Network"]
+    
     for idx, clf in enumerate(clfs):
         print("\n\nPruebas con clasificador: ", clfs_name[idx])
         for i, c in enumerate(conj_datos):
@@ -92,7 +93,30 @@ def validations(conj_datos=None):
             print("\tAcierto medio: ", np.round(scores[idx*len(clfs)+i].mean(), 4))
     
     return scores
-  
-scores = validations()  
-# def get_factorial_class():
-#     clases1, clases2 = get_class_lists()
+
+metadata = load_metadata()
+dataset = load_dataset()
+clases = get_class_lists(metadata)
+
+
+clfs = []
+# clfs.append(svm.SVC(kernel='linear', C=1, random_state=0))
+# clfs.append(LogisticRegression(random_state=0, max_iter=1000))
+# clfs.append(MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=0))
+clfs.append(RandomForestClassifier(max_depth=2, random_state=0))
+clfs_name = [ 
+    # "SVM",
+    # "Logistic Regresion", 
+    # "Neuronal Network",
+    "Random Forest"
+    ]
+
+for c in clases:
+    print("PRUEBAS CON LA CLASE DE TIPO:", c)
+    conj_datos = get_data_models(metadata, dataset, clases1=clases[c][0], clases2=clases[c][1] )
+    scores = validations(conj_datos)  
+    print("\n\n\n")
+
+
+
+scores = validations(conj_datos)  
