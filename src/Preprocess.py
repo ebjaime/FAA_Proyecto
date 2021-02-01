@@ -107,7 +107,7 @@ def medias_sensores(dataset_df):
         means_dataset[id]=aux
     return means_dataset
 
-# Media para cada sensor respecto a un mismo experimento de dataset
+# Max para cada sensor respecto a un mismo experimento de dataset
 def max_sensores(dataset_df):
     max_dataset = {}
     for id in dataset_df.id.unique():
@@ -117,7 +117,7 @@ def max_sensores(dataset_df):
         max_dataset[id]=aux
     return max_dataset
 
-# Media para cada sensor respecto a un mismo experimento de dataset
+# Min para cada sensor respecto a un mismo experimento de dataset
 def min_sensores(dataset_df):
     min_dataset = {}
     for id in dataset_df.id.unique():
@@ -150,9 +150,7 @@ def vars_dataset_segun_tiempo(dataset_df, metadata_df):
 
 # Medias de varianzas anteriores
 def means_vars_dataset_segun_tiempo(vars_dataset_antes, vars_dataset_durante, vars_dataset_despues):
-    
     mean_vars_dataset_antes = mean_varmean_sensores(processed_dataset = vars_dataset_antes)
     mean_vars_dataset_durante = mean_varmean_sensores(processed_dataset = vars_dataset_durante)
     mean_vars_dataset_despues = mean_varmean_sensores(processed_dataset = vars_dataset_despues)
-    
     return mean_vars_dataset_antes, mean_vars_dataset_durante, mean_vars_dataset_despues
