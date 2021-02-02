@@ -76,28 +76,13 @@ Resumen del trabajo realizado en 100 palabras.
 \end{abstract}
 
 \section{Introducción}
-El trabajo del proyecto se debe presentar usando esta plantilla que se puede
-obtener para latex y word en el siguiente enlace
 
-\begin{center}
-\href{https://www.elen.ucl.ac.be/esann/index.php?pg=guidelines}{https://www.elen.ucl.ac.be/esann/index.php?pg=guidelines}
-\end{center}
- 
-No se pueden cambiar las especificaciones de la plantilla: márgenes, tipo de
-letra, etc. Se recomienda usar latex.
+El proyecto que hemos realizado trata sobre el análisis de un conjunto de datos recogidos por 8 sensores de gas, un sensor de temperatura y un sensor de humedad. Estos sensores fueron expuestos a estímulos por la presencia de vino y plátanos. Además, se han recogido datos de la respuesta a la no presencia del vino y los plátanos. El objetivo del proyecto es la clasificación de las respuestas de los sensores a los estímulos previamente dichos. Para ello primero analizaremos los datos del dataset mediante técnicas de preprocesamiento para ver que nos pueden ofrecer esos datos a la hora de clasificar las respuestas. Después, elegiremos los modelos de aprendizaje automático supervisado que mejor nos convengan para dicho dataset. Por último, compararemos los resultados de los distintos modelos y razonaremos si son resultados aceptables y qué modelos han dado mejores resultados.
 
-\section{Organización de la entrega}
-El proyecto se organiza en las siguientes actividades con su correspondiente
-peso en la nota del proyecto:
-
-\begin{itemize}
-\item Presentación breve de tema de aprendizaje automático [10\%]
-\item Memoria sobre el trabajo realizado [60\%]
-\item Presentación final del trabajo el día de examen final de enero [30\%]
-\end{itemize}
-
-La memoria y la presentación en formato ppt o pdf se puede entregar hasta el día
-antes de la fecha de la presentación.
+\section{Descripción del dataset}
+El dataset proporcionado de los datos de los sensores está compuesto por dos archivos: el archivo HT\_Sensor\_dataset.dat; que contiene el identificador de la inducción, instantes de tiempo para cada inducción y los datos de los sensores para cada inducción en esos instantes de tiempo, y el archivo HT\_Sensor\_metadata.dat; que contiene para cada inducción su identificador, el día en que fue realizada, el estímulo usado para la inducción, y el intervalo de tiempo de la inducción, que es dividido en tiempo inicial y duración de la misma. 
+En este dataset hay 3 clases distintas para clasificar, que se corresponden con los estímulos que reciben los sensores:  vino (wine), plátano (banana) y ningún estímulo (background). En total se realizan 100 inducciones, donde  36 se realizan con vino, 33 con plátano y 31 son background. De esas 100 inducciones se recogen 928991 datos en distintos instantes de tiempo. Al analizar los datos podemos comprobar que no hay datos para la inducción con el identificador 95, por lo que la descartamos del análisis. Además de los datos recogidos durante la inducción, se nos ofrecen los datos de los instantes previos y posteriores de la inducción. Esta división del tiempo la podemos calcular fácilmente para cada inducción con la ayuda de los datos del tiempo del archivo de los metadatos, por lo que podemos distinguir para cada experimento estos tres periodos diferenciados. Comprobamos que para los experimentos con identificadores 14 y 76 no tenemos datos posteriores a la inducción, por lo que también los descartamos del análisis.
+Los atributos del dataset son numéricos y reales, por lo que podemos utilizar las medidas características de la distribución de los atributos para analizarlos. Estas medidas pueden ser de centralización, como la media, o de dispersión, como la varianza. Con estas medidas podemos ver como se comporta cada sensor frente a los estímulos. Más adelante vamos a ver cómo analizar los atributos y ver qué medidas nos pueden ayudar realmente a conseguir mejores resultados.
 
 \section{Memoria}
 La longitud máxima serán \emph{8 caras} sin incluir referencias. Se valorará la
@@ -125,13 +110,6 @@ estricto y se parará a los que se pasen de tiempo.
 Las tablas y figuras hay que referenciarlas desde el texto y describir qué
 muestran. Por ejemplo, en la Figura~\ref{fig:logo} se muestra el logo de
 scikit-learn. En la Tabla~\ref{tab:ageweight} se muestra un ejemplo de tabla.
-
-
-\begin{figure}[b!]
-\centering
-\includegraphics{logo.png}
-\caption{Logo de scikit-learn}\label{fig:logo}
-\end{figure}
 
 \begin{table}[t!]
   \centering
