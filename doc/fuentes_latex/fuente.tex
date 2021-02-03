@@ -84,9 +84,9 @@ El dataset proporcionado de los datos de los sensores está compuesto por dos ar
 En este último dataset hay 3 clases distintas para clasificar, que se corresponden con los estímulos que reciben los sensores:  vino (wine), plátano (banana) y ningún estímulo (background). En total se realizan 100 inducciones, donde  36 se realizan con vino, 33 con plátano y 31 son background. De esas 100 inducciones se recogen 928991 datos en distintos instantes de tiempo. Al analizar los datos se puede comprobar que no hay datos para la inducción con el identificador 95, por lo que esta instancia es descartada del análisis. Además de los datos recogidos durante la inducción, se nos ofrecen los datos de los instantes previos y posteriores de la inducción. Esta división del tiempo se puede calcular fácilmente para cada inducción con la ayuda de los datos del tiempo del archivo de los metadatos (HT\_Sensor\_metadata.dat), por lo que podemos distinguir para cada experimento estos tres periodos diferenciados. Comprobamos que para los experimentos con identificadores 14 y 76 no tenemos datos posteriores a la inducción, por lo que también los descartamos, quedando 97 instancias válidas. \\
 Los atributos del dataset son numéricos y reales, por lo que se pueden utilizar las medidas características de la distribución de cada atributo para analizarlo. Estas medidas pueden ser de centralización, como la media, o de dispersión, como la varianza. Con estas medidas se puede ver como se comporta cada sensor frente a los estímulos. En el siguiente apartado se verá un pequeño resumen sobre el  análisis llevado a cabo sobre los datos y el proceso a seguir para obtener los atributos que serán utilizados para entrenar a los modelos en el apartado 4.
 
-\section{Análisis  de los datos}
-La mayoría de funciones utilizadas para el análisis de los datos y el preprocesamiento previo al entrenamiento de modelos se pueden encontrar en el fichero \textit{Preprocess.py}. La única excepción es la función utilizada para la representación de instancias a lo largo del tiempo que encontramos en el fichero \\ \textit{Plot\_Induction\_Figure.py} que se facilita en [1]. Se utilizan los módulos de Pandas, NumPy, Sci-kit Learn y Matplotlib. \\
-El primer paso para el análisis será representar los experimentos para cada clase y fijarse en qué atributos pueden marcar la diferencia a la hora de clasificar. La Figura~\ref{fig:banvswinvsbck} muestra al progresión de los sensores para 3 experimentos (id=0, id=1, id=69), uno por clase.
+\section{Análisis  de los datos y elección de atributos}
+La mayoría de funciones utilizadas para el análisis de los datos y el preprocesamiento previo al entrenamiento de modelos se pueden encontrar en el fichero \textit{Preprocess.py}. La única excepción es la función utilizada para la representación de instancias a lo largo del tiempo que encontramos en el fichero \\ \textit{Plot\_Induction\_Figure.py} que se facilita en [1]. Todas las operaciones de este apartado (así como del resto) pueden encontrarse en \textit{proyecto.ipynb}. Se utilizan los módulos de Pandas [2], NumPy [3], Sci-kit Learn [4] y Matplotlib [5]. \\
+El primer paso para el análisis será representar los experimentos para cada clase y fijarse en qué atributos pueden marcar la diferencia a la hora de clasificar. La Figura~\ref{fig:banvswinvsbck} muestra al progresión de los sensores para 3 experimentos (id=0, id=1, id=69), uno por clase. \\
 
 \begin{figure}[b!]
 \includegraphics[scale=0.35]{img/banvswin.png}
@@ -96,28 +96,67 @@ El primer paso para el análisis será representar los experimentos para cada cl
 \end{figure}
 
 
-Se puede observar como los atributos de temperatura y humedad obtienen valores  y varianzas muy similares independientemente de la clase. En la Figura ~\ref{fig:tempvshum} comprobamos como estos atributos no nos van a ayudar a predecir la clase de cada experimento, al no estar correlacionados. Por otro lado, observamos como cuando la humedad es más alta, los sensores obtienen unos resultados más fluctuantes que con humedad baja. Se puede ver claramente cuando se representan los experimentos con id=0 e id=10 (en Notebook).
+Se puede observar como los atributos de temperatura y humedad obtienen valores  y varianzas muy similares independientemente de la clase. Al representar esta relación, se comprueba como estos atributos no nos van a ayudar a predecir la clase de cada experimento, al no estar correlacionados. Por otro lado, se observa como cuando la humedad es más alta, los sensores obtienen unos resultados más fluctuantes que con humedad baja. Se puede ver claramente cuando se representan los experimentos con id=0 e id=10 (se muestra en el código). Se estima que los atributos de temperatura y humedad pueden ser útiles si se utilizan junto a otros atributos para la clasificación, pero no si se utilizan solos. \\
+
+Por otro lado, los sensores obtienen estimulaciones muy diferentes entre ellos según la clase. La fluctuación de los sensores durante la estimulación del experimento (entre las dos líneas azules)  es muy pronunciada para el vino, seguido del plátano y muy poco notable cuando no se introduce ningún elemento en el sensor. En la Figura~\ref{fig:banvswinvsbck} se muestra muy claramente. Por lo tanto, la varianza de cada sensor puede ser un posible atributo para nuestro modelo. \\
+
+Además, como se muestra en el notebook, la media y mediana de los sensores son muy similares independientemente de la clase que utilicemos. No serán considerados como atributos útiles para el modelo final. Lo mismo sucede con los valores máximos y mínimos de cada sensor. Aunque los valores varían mucho dependiendo de cada ejemplo, no existe un patrón que se repita según la clase. En el caso de utilizar alguna de estas cuantías como atributo de un modelo, se obtienen resultados muy malos. Modificando mínimamente el código se puede comprobar este suceso. \\
+
+Volviendo a la variabilidad de los sensores, la distancia entre el máximo y mínimo valor de cada sensor (que será referido como amplitud) también podría ser útil a la hora de clasificar. Como con la varianza, se obtienen unos valores mayores para los casos en los que el objeto es vino en comparación con un plátano o cuando no se inserta nada.  Se puede considerar por lo tanto, que los atributos que se tomarán para entrenar a nuestro modelo se basarán en la variabilidad de cada uno de los sensores, al ser las cuantías que más correlación observada obtienen con la correspondiente clase. Tras calcular  la varianza y amplitud de cada sensor, se obtienen 16 atributos para cada ejemplo. A estos atributos se les añaden las medias de la humedad y temperatura, que como se explica anteriormente, pueden ayudar en el proceso de clasificiación, aunque por sí solos no sean útiles. En total se tendrán 18 atributos de entrada por ejemplo del dataset.\\
+
+Todos los atributos serán normalizados previo al entrenamiento del modelo. Este paso mejora la predicción de los modelos al no utilizar distintas escalas para cada atributo . Para este proyecto se utiliza el método de Sci-kit Learn  \textit{StandardScaler} que normaliza los atributos restando su correspondiente media y dividiendo el resultado por la desviación estándar. Tras esta transformación se puede comenzar a entrenar a los modelos. En el siguiente apartado se describe el proceso seguido.
+
+\section{Modelos propuestos}
+
+A la hora de definir los distintos conjuntos de datos de entrenamiento y prueba, se deberá prestar atención a mantener la misma proporción de cada clase en cada conjunto. De este modo no habrá infrajuste sobre una clase que tenga poca presencia en el conjunto de entrenamiento. Para ello se hace uso del método de Sci-kit Learn \textit{StratifiedShuffleSplit} que mezclará el conjunto de datos entero y dividirlo entre conjunto de entrenamiento y prueba. Se utilizará un conjunto de prueba del 10\% de tamaño del conjunto total.\\
+
+Utilizando el módulo de  Python \textit{LazyPredict} se podrá hacer una rápida evaluación sobre qué modelos obtendrán buenos resultados. Uno de los modelos del módulo puede entrenar muchos algoritmos de clasificación de Sci-kit Learn[4], xgboost [8] o lightgbm [9] a partir de unos parámetros de entrada y calcular el error de predicción sobre un conjunto de prueba calculando "F-1 Score" o "Accuracy" para cada modelo. 
+Debido a que este conjunto de datos es tan pequeño y es probable que los modelos se sobreajusten sobre los datos de entrenamiento, causando que las predicciones sean muy erróneas, el proceso de entrenamiento y validación de   \textit{LazyPredict}  se repetirá un total de 30 veces. De este modo se dividirá el conjunto de datos cada una de las veces de manera distinta, se almacenarán los resultados y se calculará la media para obtener así el mejor modelo sobre las 30 iteraciones. \\ 
+
+Sobre los 28 modelos, los mejores cinco que se obtienen (y su correspondientes métricas) se muestran el la Tabla~\ref{tab:lazypred}. \\
+
+\begin{table}[t!]
+  \centering
+  \begin{tabular}{|c|c|c|}
+    \hline
+    Modelo & Accuracy & F1-Score \\
+    \hline
+    RandomForestClassifier & 0.76 & 0.75 \\ 
+	ExtraTreesClassifier & 0.74 & 0.74 \\ 
+	XGBClassifier & 0.74 & 0.73 \\ 
+	LogisticRegression & 0.74 & 0.72 \\ 
+	LinearSVC & 0.73 & 0.71 \\ 
+    \hline
+  \end{tabular}
+  \caption{Age and weight of people.}\label{tab:lazypred}
+\end{table}
+
+Los resultados podrán variar según la ejecución pero entre los cinco mejores, siempre se repiten los mostrados en la Tabla~\ref{tab:lazypred}.\\
+
+A partir de estos resultados, se deciden utilizar  los cinco modelos: textit{LogisticRegression, KNeighborsClassifier, RandomForestClassifier,LinearSVC y XGBClassifier}. Utilizando la última división del conjunto de datos de las 30 iteraciones, se realiza una validación cruzada para cada modelo con nuestros datos de entrenamiento con el número de folds siendo igual a 10. De este modo, se realizarán más validaciones y los modelos podrán ser entrenados sobre la mayoría de datos del conjunto de entrenamiento. A partir de las valdaciones cruzadas podremos obtener una matriz de confusión. Esto es posible gracias al método de Sci-kit Learn  textit{cross\_val\_predict} que almacena todas las predicciones sobre cada fold de la validación cruzada.  Los resultados se muestran en la Figura ~\ref{fig:cm}.  \\
 
 \begin{figure}[b!]
 \centering
-\includegraphics[scale=0.5]{img/temp_hum.png}
-\caption{Temperatura y. Humedad respecto a clases}\label{fig:tempvshum}
+\includegraphics[scale=0.3]{img/matrices_confusion.png}
+\caption{Matrices de confusión sobre distintos modelos}\label{fig:cm}
 \end{figure}
 
-Por otro lado, los sensores obtienen estimulaciones muy diferentes entre ellos según la clase. La fluctuación de los sensores durante la estimulación del experimento (entre las dos líneas azules)  es muy pronunciada para el vino, seguido del plátano y muy poco notable cuando no se introduce ningún elemento en el sensor. En la Figura~\ref{fig:banvswinvsbck} se muestra muy claramente. Por lo tanto, la varianza de cada sensor puede ser un posible atributo para nuestro modelo. \\
-Además, como se muestra en el notebook, la media y mediana de los sensores son muy similares independientemente de la clase que utilicemos. Esto significa que no serán atributos útiles para el modelo final.
+Se decide probar a utilizar un modelo de redes neuronales y comprobar su eficiencia sobre nuestro conjunto de datos. Se implementa mediante el módulo de Python, Keras [7]. Se utilizará una red neuronal de una capa oculta con la arquitectura que muestra la Figura ~\ref{fig:nn}, con un input de 18 atributos, una capa oculta de 10 perceptrones y un output de 3 probabilidades. Las dos primeras capas con una función de activación ReLu y la última Softmax, para calcular las probabilidades de cada ejemplo. La Figura ~\ref{fig:nn} también muestra los malos resultados de validación del modelo, con un 50\% de accuracy y un error que baja muy ligeramente a medida que aumentan las épocas.   \\
 
+\begin{figure}[b!]
+\centering
+\includegraphics[scale=0.3]{img/nn.png}
+\caption{Matrices de confusión sobre distintos modelos}\label{fig:nn}
+\end{figure}
 
-\section{Modelos y Atributos propuestos}
-
-- Atributo x atributo posible. Por qué y por qué no
-
-- Lazy predict
-
-- Modelos elegidos
+Los malos resultados de la red neuronal motivan a utilizar uno de los modelos anteriores de Sci-kit Learn. Observando las matrices de confusión, se eligen los modelos de Regresión Logística (LogisticRegression) y de "Extreme Gradient Boosting"[8]  (XDBClassifier), al ser los que mejor exactitud ("accuracy") obtienen. Estos dos modelos serán refinados mediante el módulo de Sci-kit Learn, \textit{GridSearchCV} para obtener los valores de sus parámetros  que maximicen el acierto en las predicciones. \\
+Con los modelos obtenidos tras el refinamiento de parámetros se realiza un entrenamiento y una predicción sobre los conjuntos de entrenamiento y de prueba, correspondientemente. Para el modelo de "Extreme Gradient Boosting" se obtiene un acierto del 80\% mientras que para el de regresión logística un acierto del 70\%. Como se menciona anteriormente, estos valores pueden variar según se ejecute otra vez, pero los resultados no deberían de cambiar más del 5\%. 
 
 \section{Discusión de resultados}
 
+
+
+\section{Conclusión y futuro trabajo}
 
 
 \section{Memoria}
@@ -142,51 +181,12 @@ Debéis entregar un ppt o pdf con el resumen del trabajo. Debe ser una
 presentación para presentar en 12 minutos. El tiempo de presentación será
 estricto y se parará a los que se pasen de tiempo.
 
-\section{Tablas y figuras}
-Las tablas y figuras hay que referenciarlas desde el texto y describir qué
-muestran. Por ejemplo, en la Figura~\ref{fig:logo} se muestra el logo de
-scikit-learn. En la Tabla~\ref{tab:ageweight} se muestra un ejemplo de tabla.
-
-
-\begin{figure}[b!]
-\centering
-%\includegraphics{logo.png}
-\caption{Logo de scikit-learn}\label{fig:logo}
-\end{figure}
-
-\begin{table}[t!]
-  \centering
-  \begin{tabular}{|c|c|c|}
-    \hline
-    ID & age & weight \\
-    \hline
-    1& 15 & 65 \\
-    2& 24 & 74\\
-    3& 18 & 69 \\
-    4& 32 & 78 \\
-    \hline
-  \end{tabular}
-  \caption{Age and weight of people.}\label{tab:ageweight}
-\end{table}
-
 \section{Citas}
 Es una buena práctica referenciar los trabajos en los que se ha basado vuestro
 análisis. Por ejemplo, si los experimentos se han realizado utilizado
 scikit-learn habría que citarlo~\cite{scikit-learn}.
 
-\section{Cómo obtener este pdf usando \LaTeX}
-Podéis seguir los siguientes pasos para obtener el pdf junto con sus
-referencias desde una consola linux:
 
-\begin{lstlisting}
- pdflatex fuente.tex
- bibtex fuente
- pdflatex fuente.tex
- pdflatex fuente.tex
-\end{lstlisting}
-
-Estos comandos generan el fichero pdf que incluye las referencias. Las
-referencias se guardan en un fichero aparte (en esta caso mi\_bibliografia.bib).
 % ****************************************************************************
 % BIBLIOGRAPHY AREA
 % ****************************************************************************
