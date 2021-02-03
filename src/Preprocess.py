@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 par_dir = ".." # Por defecto se corre en directorio "script/"
 
@@ -28,7 +29,10 @@ def plotTempHum(poblacion, c):
                 c=c)
     plt.xlabel("Grados ºC")
     plt.ylabel("% Humidity")
-
+    custom_lines = [Line2D([0], [0], color="g", lw=4),
+                Line2D([0], [0], color="r", lw=4),
+                Line2D([0], [0], color="b", lw=4)]
+    plt.legend(custom_lines, ['Banana', 'Wine', 'Background'])
 
 # Separacion de ids por clase 
 def split_class_id(metadata_df):

@@ -47,7 +47,7 @@
 %***********************************************************************
 % AUTHORS INFORMATION AREA
 %***********************************************************************
-\author{Vuestros nombres$^1$
+\author{Jorge Durán León, Jaime Enríquez Ballesteros, Marcos de las Heras Roncero
 %
 % Optional short acknowledgment: remove next line if non-needed
 %\thanks{This is an optional funding source acknowledgement.}
@@ -56,7 +56,7 @@
 \vspace{.3cm}\\
 %
 % Addresses and institutions (remove "1- " in case of a single institution)
-%1- School of First Author - Dept of First Author \\
+  Escuela Politécnica Superior, Fundamentos de Aprendizaje Automático \\
 %Address of First Author's school - Country of First Author's
 %school
 %
@@ -76,28 +76,49 @@ Resumen del trabajo realizado en 100 palabras.
 \end{abstract}
 
 \section{Introducción}
-El trabajo del proyecto se debe presentar usando esta plantilla que se puede
-obtener para latex y word en el siguiente enlace
 
-\begin{center}
-\href{https://www.elen.ucl.ac.be/esann/index.php?pg=guidelines}{https://www.elen.ucl.ac.be/esann/index.php?pg=guidelines}
-\end{center}
- 
-No se pueden cambiar las especificaciones de la plantilla: márgenes, tipo de
-letra, etc. Se recomienda usar latex.
+El proyecto que se ha realizado trata sobre el análisis de un conjunto de datos recogidos por 8 sensores de gas, un sensor de temperatura y un sensor de humedad. Estos sensores fueron expuestos a estímulos por la presencia de vino y plátanos. Además, se recogen datos de la respuesta a la no presencia de ninguno de ellos. El objetivo del proyecto es la clasificación de las respuestas de los sensores a los estímulos previamente dichos. Para ello primero se analizarán los datos del dataset mediante técnicas de preprocesamiento para ver que pueden ofrecer esos datos a la hora de clasificar las respuestas. Después, se elegirán los modelos de aprendizaje automático supervisado que mejor nos convengan para dicho dataset. Por último, se compararán los resultados de los distintos modelos y razonaremos si son resultados aceptables y qué modelos han dado mejores resultados.
 
-\section{Organización de la entrega}
-El proyecto se organiza en las siguientes actividades con su correspondiente
-peso en la nota del proyecto:
+\section{Descripción del dataset}
+El dataset proporcionado de los datos de los sensores está compuesto por dos archivos: el archivo HT\_Sensor\_dataset.dat; que contiene el identificador de la inducción, instantes de tiempo para cada inducción y los datos de los sensores para cada inducción en esos instantes de tiempo, y el archivo HT\_Sensor\_metadata.dat; que contiene para cada inducción su identificador, el día en que fue realizada, el estímulo usado para la inducción, y el intervalo de tiempo de la inducción, que está dividido en tiempo inicial y duración de la misma. \\
+En este último dataset hay 3 clases distintas para clasificar, que se corresponden con los estímulos que reciben los sensores:  vino (wine), plátano (banana) y ningún estímulo (background). En total se realizan 100 inducciones, donde  36 se realizan con vino, 33 con plátano y 31 son background. De esas 100 inducciones se recogen 928991 datos en distintos instantes de tiempo. Al analizar los datos se puede comprobar que no hay datos para la inducción con el identificador 95, por lo que esta instancia es descartada del análisis. Además de los datos recogidos durante la inducción, se nos ofrecen los datos de los instantes previos y posteriores de la inducción. Esta división del tiempo se puede calcular fácilmente para cada inducción con la ayuda de los datos del tiempo del archivo de los metadatos (HT\_Sensor\_metadata.dat), por lo que podemos distinguir para cada experimento estos tres periodos diferenciados. Comprobamos que para los experimentos con identificadores 14 y 76 no tenemos datos posteriores a la inducción, por lo que también los descartamos, quedando 97 instancias válidas. \\
+Los atributos del dataset son numéricos y reales, por lo que se pueden utilizar las medidas características de la distribución de cada atributo para analizarlo. Estas medidas pueden ser de centralización, como la media, o de dispersión, como la varianza. Con estas medidas se puede ver como se comporta cada sensor frente a los estímulos. En el siguiente apartado se verá un pequeño resumen sobre el  análisis llevado a cabo sobre los datos y el proceso a seguir para obtener los atributos que serán utilizados para entrenar a los modelos en el apartado 4.
 
-\begin{itemize}
-\item Presentación breve de tema de aprendizaje automático [10\%]
-\item Memoria sobre el trabajo realizado [60\%]
-\item Presentación final del trabajo el día de examen final de enero [30\%]
-\end{itemize}
+\section{Análisis  de los datos}
+La mayoría de funciones utilizadas para el análisis de los datos y el preprocesamiento previo al entrenamiento de modelos se pueden encontrar en el fichero \textit{Preprocess.py}. La única excepción es la función utilizada para la representación de instancias a lo largo del tiempo que encontramos en el fichero \\ \textit{Plot\_Induction\_Figure.py} que se facilita en [1]. Se utilizan los módulos de Pandas, NumPy, Sci-kit Learn y Matplotlib. \\
+El primer paso para el análisis será representar los experimentos para cada clase y fijarse en qué atributos pueden marcar la diferencia a la hora de clasificar. La Figura~\ref{fig:banvswinvsbck} muestra al progresión de los sensores para 3 experimentos (id=0, id=1, id=69), uno por clase.
 
-La memoria y la presentación en formato ppt o pdf se puede entregar hasta el día
-antes de la fecha de la presentación.
+\begin{figure}[b!]
+\includegraphics[scale=0.35]{img/banvswin.png}
+\centering
+\includegraphics[scale=0.3]{img/background_69.png}
+\caption{Comparación entre clases}\label{fig:banvswinvsbck}
+\end{figure}
+
+
+Se puede observar como los atributos de temperatura y humedad obtienen valores  y varianzas muy similares independientemente de la clase. En la Figura ~\ref{fig:tempvshum} comprobamos como estos atributos no nos van a ayudar a predecir la clase de cada experimento, al no estar correlacionados. Por otro lado, observamos como cuando la humedad es más alta, los sensores obtienen unos resultados más fluctuantes que con humedad baja. Se puede ver claramente cuando se representan los experimentos con id=0 e id=10 (en Notebook).
+
+\begin{figure}[b!]
+\centering
+\includegraphics[scale=0.5]{img/temp_hum.png}
+\caption{Temperatura y. Humedad respecto a clases}\label{fig:tempvshum}
+\end{figure}
+
+Por otro lado, los sensores obtienen estimulaciones muy diferentes entre ellos según la clase. La fluctuación de los sensores durante la estimulación del experimento (entre las dos líneas azules)  es muy pronunciada para el vino, seguido del plátano y muy poco notable cuando no se introduce ningún elemento en el sensor. En la Figura~\ref{fig:banvswinvsbck} se muestra muy claramente. Por lo tanto, la varianza de cada sensor puede ser un posible atributo para nuestro modelo. \\
+Además, como se muestra en el notebook, la media y mediana de los sensores son muy similares independientemente de la clase que utilicemos. Esto significa que no serán atributos útiles para el modelo final.
+
+
+\section{Modelos y Atributos propuestos}
+
+- Atributo x atributo posible. Por qué y por qué no
+
+- Lazy predict
+
+- Modelos elegidos
+
+\section{Discusión de resultados}
+
+
 
 \section{Memoria}
 La longitud máxima serán \emph{8 caras} sin incluir referencias. Se valorará la
@@ -129,7 +150,7 @@ scikit-learn. En la Tabla~\ref{tab:ageweight} se muestra un ejemplo de tabla.
 
 \begin{figure}[b!]
 \centering
-\includegraphics{logo.png}
+%\includegraphics{logo.png}
 \caption{Logo de scikit-learn}\label{fig:logo}
 \end{figure}
 
