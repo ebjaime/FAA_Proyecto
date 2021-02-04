@@ -76,13 +76,22 @@ def get_missing_values(metadata_df, dataset_df=None, dfs=None):
         
     return diffs
 
-# ???
-def get_class_lists(metadata):
-    clases = np.array( metadata[:,[2]] )
-    clases1 = np.delete(clases, 95, 0).ravel()
-    clases2 = np.delete(clases, [14, 76, 95], 0).ravel()
-    
+def get_class(metadata, clases=None):
+    if clases is None:
+        clases = metadata["class"]
+    clases1 = clases.drop([95])
+    clases2 = clases.drop([14, 76, 95])
     return clases1, clases2
+
+def get_class_lists(metadata):
+    clases = {}
+    temp = metadata["class"]
+    clases["all"] = list(get_class(metadata, temp.map({"banana": 0, "wine": 1, "background": 2})))
+    clases["banana"] = list(get_class(metadata, temp.map({"banana": 1, "wine": 0, "background": 0}) ))
+    clases["wine"] = list(get_class(metadata, temp.map({"banana": 0, "wine": 1, "background": 0})))
+    clases["background"] = list(get_class(metadata, temp.map({"banana": 0, "wine": 0, "background": 1})))
+    
+    return clases
 
 def get_split_np_data(dataset_df, metadata_df):
     vars_dataset_antes, vars_dataset_durante, vars_dataset_despues = vars_dataset_segun_tiempo(dataset_df, metadata_df)
@@ -158,3 +167,11 @@ def means_vars_dataset_segun_tiempo(vars_dataset_antes, vars_dataset_durante, va
     mean_vars_dataset_durante = mean_varmean_sensores(processed_dataset = vars_dataset_durante)
     mean_vars_dataset_despues = mean_varmean_sensores(processed_dataset = vars_dataset_despues)
     return mean_vars_dataset_antes, mean_vars_dataset_durante, mean_vars_dataset_despues
+
+
+def merge_np_data(data1, data2, delete1=False, delete2=False):
+    if delete1:
+        data1 = np.delete(data1, [14, 76], 0)
+    if delete2:
+        data2 = np.delete(data2, [14, 76], 0)
+    return np.column_stack((data1, data2))
